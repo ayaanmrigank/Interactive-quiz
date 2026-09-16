@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrainBrew • Cozy AI Quiz Generator</title>
+
+  <!-- Google Fonts for warm, cozy & modern typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* CSS Reset & Variables */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* Cozy Warm Palette */
+      --bg-base: #f7f3ee;
+      --bg-gradient: radial-gradient(circle at 10% 20%, #fdfbf7 0%, #f6efe6 50%, #eee4d5 100%);
+      --surface: #ffffff;
+      --surface-warm: #fcf9f5;
+      --surface-hover: #f7f0e6;
+      
+      --accent-warm: #d97736;
+      --accent-warm-hover: #c46425;
+      --accent-warm-light: #fbeee4;
+      --accent-secondary: #789078;
+      
+      --text-main: #2d2621;
+      --text-muted: #74685f;
+      --text-faint: #a89d93;
+      
+      --border-subtle: #ebdcd0;
+      --border-focus: #d97736;
+
+      --shadow-sm: 0 4px 12px rgba(92, 69, 50, 0.05);
+      --shadow-card: 0 16px 40px rgba(92, 69, 50, 0.08), 0 2px 6px rgba(92, 69, 50, 0.03);
+      --shadow-btn: 0 6px 18px rgba(217, 119, 54, 0.28);
+
+      --radius-sm: 12px;
+      --radius-md: 18px;
+      --radius-lg: 26px;
+      --radius-pill: 9999px;
+
+      --font-display: 'Fraunces', serif;
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.25rem;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Outer Wrapper & Layout */
+    .app-container {
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    /* Header Section */
+    .app-header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background-color: var(--accent-warm-light);
+      color: var(--accent-warm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.35rem 0.95rem;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .title {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 3.2rem);
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .title span {
+      color: var(--accent-warm);
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 480px;
+      font-weight: 400;
+    }
+
+    /* Topic Prompt Card */
+    .control-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1.15rem;
+      color: var(--accent-warm);
+      font-size: 1.25rem;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .topic-input {
+      width: 100%;
+      padding: 1.05rem 1.25rem 1.05rem 3.1rem;
+      border: 2px solid var(--border-subtle);
+      background-color: var(--surface-warm);
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 1.05rem;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .topic-input::placeholder {
+      color: var(--text-faint);
+    }
+
+    .topic-input:focus {
+      background-color: var(--surface);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 4px rgba(217, 119, 54, 0.15);
+    }
+
+    /* Generate Button */
+    .btn-generate {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      width: 100%;
+      padding: 1rem 1.75rem;
+      background: linear-gradient(135deg, var(--accent-warm), #e88647);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow-btn);
+      transition: all 0.25s ease;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-generate:hover {
+      background: linear-gradient(135deg, var(--accent-warm-hover), #db7838);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(217, 119, 54, 0.35);
+    }
+
+    .btn-generate:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-btn);
+    }
+
+    /* Quiz Area Card */
+    .quiz-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative cozy subtle ambient glow */
+    .quiz-card::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(217, 119, 54, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .card-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed var(--border-subtle);
+      padding-bottom: 0.9rem;
+    }
+
+    .quiz-tag {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-secondary);
+      background-color: #f0f4f0;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .quiz-status {
+      font-size: 0.85rem;
+      color: var(--text-faint);
+      font-weight: 500;
+    }
+
+    /* Large Styled Question Display Area */
+    .question-display-area {
+      background: var(--surface-warm);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.6rem 1.75rem;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .question-text {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 500;
+      line-height: 1.5;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    /* Multiple Choice Options Grid */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+      .quiz-card {
+        padding: 1.4rem;
+      }
+      .control-card {
+        padding: 1.25rem;
+      }
+    }
+
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      background-color: var(--surface);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.05rem 1.15rem;
+      text-align: left;
+      font-family: var(--font-sans);
+      font-size: 0.98rem;
+      font-weight: 500;
+      color: var(--text-main);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+      position: relative;
+    }
+
+    .option-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background-color: var(--surface-warm);
+      border: 1.5px solid var(--border-subtle);
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      transition: all 0.22s ease;
+    }
+
+    .option-text {
+      flex: 1;
+      line-height: 1.35;
+    }
+
+    /* Option Button Hover & Focus States */
+    .option-btn:hover {
+      background-color: var(--surface-hover);
+      border-color: var(--accent-warm);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(92, 69, 50, 0.08);
+    }
+
+    .option-btn:hover .option-badge {
+      background-color: var(--accent-warm);
+      border-color: var(--accent-warm);
+      color: #ffffff;
+    }
+
+    .option-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Selected state for preview/interaction */
+    .option-btn.selected {
+      border-color: var(--accent-warm);
+      background-color: var(--accent-warm-light);
+    }
+
+    .option-btn.selected .option-badge {
+      background-color: var(--accent-warm);
+      border-color: var(--accent-warm);
+      color: #ffffff;
+    }
+
+    /* Correct & Incorrect feedback states */
+    .option-btn.correct {
+      border-color: #3b8b54 !important;
+      background-color: #edf7f0 !important;
+      color: #1e5230 !important;
+    }
+
+    .option-btn.correct .option-badge {
+      background-color: #3b8b54 !important;
+      border-color: #3b8b54 !important;
+      color: #ffffff !important;
+    }
+
+    .option-btn.incorrect {
+      border-color: #d9534f !important;
+      background-color: #fdf2f2 !important;
+      color: #7d2624 !important;
+    }
+
+    .option-btn.incorrect .option-badge {
+      background-color: #d9534f !important;
+      border-color: #d9534f !important;
+      color: #ffffff !important;
+    }
+
+    /* Quiz Footer Bar & Next Button */
+    .quiz-footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 1.1rem;
+      border-top: 1px dashed var(--border-subtle);
+      margin-top: 0.25rem;
+    }
+
+    .quiz-counter {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-next {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, var(--accent-warm), #e88647);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-pill);
+      padding: 0.65rem 1.35rem;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(217, 119, 54, 0.25);
+      transition: all 0.22s ease;
+    }
+
+    .btn-next:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--accent-warm-hover), #db7838);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(217, 119, 54, 0.35);
+    }
+
+    .btn-next:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-next:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Footer / Helper */
+    .app-footer {
+      text-align: center;
+      color: var(--text-faint);
+      font-size: 0.85rem;
+      margin-top: -0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="app-container">
+    <!-- Header Section -->
+    <header class="app-header">
+      <div class="badge">
+        <span>✨</span> AI Knowledge Spark
+      </div>
+      <h1 class="title">BrainBrew <span>AI</span></h1>
+      <p class="subtitle">Brew insightful quiz questions on any topic in the universe with warm, tailored AI prompts.</p>
+    </header>
+
+    <!-- Topic Input & Generator Section -->
+    <section class="control-card">
+      <div class="input-wrapper">
+        <span class="input-icon">💡</span>
+        <input 
+          type="text" 
+          id="topic-input" 
+          class="topic-input" 
+          placeholder="Enter a topic (e.g., Renaissance Art, Quantum Physics, 90s Hip Hop)..."
+          autocomplete="off"
+        />
+      </div>
+      <button type="button" id="generate-btn" class="btn-generate">
+        <span>✨</span> Generate Question
+      </button>
+    </section>
+
+    <!-- Question & Multiple Choice Area -->
+    <section class="quiz-card">
+      <div class="card-header-bar">
+        <span class="quiz-tag">🌿 Question 1 • Ready</span>
+        <span class="quiz-status">Multiple Choice</span>
+      </div>
+
+      <!-- Large Styled Text Area for Displaying the Generated Question -->
+      <div class="question-display-area" id="question-box">
+        <p class="question-text" id="question-text">
+          Which Renaissance polymath painted the masterpiece known as the Mona Lisa?
+        </p>
+      </div>
+
+      <!-- 4 Multiple Choice Buttons -->
+      <div class="options-grid" id="options-container">
+        <button type="button" class="option-btn" data-option="A">
+          <span class="option-badge">A</span>
+          <span class="option-text">Option A</span>
+        </button>
+
+        <button type="button" class="option-btn" data-option="B">
+          <span class="option-badge">B</span>
+          <span class="option-text">Option B</span>
+        </button>
+
+        <button type="button" class="option-btn" data-option="C">
+          <span class="option-badge">C</span>
+          <span class="option-text">Option C</span>
+        </button>
+
+        <button type="button" class="option-btn" data-option="D">
+          <span class="option-badge">D</span>
+          <span class="option-text">Option D</span>
+        </button>
+      </div>
+
+      <!-- Quiz Footer Bar with Counter & Next Button -->
+      <div class="quiz-footer-bar" id="quiz-footer-bar" style="display: none;">
+        <span class="quiz-counter" id="quiz-counter">Question 1</span>
+        <button type="button" id="next-btn" class="btn-next">
+          Next Question <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer Note -->
+    <footer class="app-footer">
+      Crafted with cozy vibes & modern aesthetics for curious minds.
+    </footer>
+  </main>
+
+  <script>
+    const generateBtn = document.getElementById('generate-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const quizFooterBar = document.getElementById('quiz-footer-bar');
+    const quizCounter = document.getElementById('quiz-counter');
+    const topicInput = document.getElementById('topic-input');
+    const questionDisplay = document.getElementById('question-text');
+    const optionButtons = document.querySelectorAll('.option-btn');
+    const quizTag = document.querySelector('.quiz-tag');
+    const quizStatus = document.querySelector('.quiz-status');
+
+    let currentTopic = "";
+    let questionNumber = 0;
+    let askedQuestions = [];
+    let currentCorrectAnswer = "";
+
+    // Helper: Parse the raw AI text into question, options, and correct answer
+    function parseQuiz(rawText) {
+      let question = "";
+      const options = { A: "", B: "", C: "", D: "" };
+      let correct = "";
+
+      // 1. Extract Question (everything after 'Question:' up to option A)
+      const qMatch = rawText.match(/Question:\s*([\s\S]*?)(?=(?:\r?\n\s*[A-D][\)\.\:]))/i);
+      if (qMatch) {
+        question = qMatch[1].trim();
+      } else {
+        const parts = rawText.split(/\r?\n\s*A[\)\.\:]/i);
+        question = parts[0]
+          .replace(/^[\s\S]*?Question:\s*/i, '')
+          .replace(/^.*?trivia question.*?:\s*/i, '')
+          .trim();
+      }
+
+      // 2. Extract Options A, B, C, D
+      const optAMatch = rawText.match(/(?:^|\n)\s*A[\)\.\:]\s*([^\r\n]+)/i);
+      const optBMatch = rawText.match(/(?:^|\n)\s*B[\)\.\:]\s*([^\r\n]+)/i);
+      const optCMatch = rawText.match(/(?:^|\n)\s*C[\)\.\:]\s*([^\r\n]+)/i);
+      const optDMatch = rawText.match(/(?:^|\n)\s*D[\)\.\:]\s*([^\r\n]+)/i);
+
+      if (optAMatch) options.A = optAMatch[1].trim();
+      if (optBMatch) options.B = optBMatch[1].trim();
+      if (optCMatch) options.C = optCMatch[1].trim();
+      if (optDMatch) options.D = optDMatch[1].trim();
+
+      // 3. Extract Correct Answer letter
+      const correctMatch = rawText.match(/Correct(?:\s*Answer)?:\s*([A-D])/i);
+      if (correctMatch) {
+        correct = correctMatch[1].toUpperCase();
+      }
+
+      return { question, options, correct };
+    }
+
+    // Interactive Option Selection & Answer Checking
+    optionButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selectedOption = btn.getAttribute('data-option');
+
+        // Clear previous selection states
+        optionButtons.forEach(b => b.classList.remove('selected', 'correct', 'incorrect'));
+        btn.classList.add('selected');
+
+        // If we have an answer to validate against
+        if (currentCorrectAnswer) {
+          if (selectedOption === currentCorrectAnswer) {
+            btn.classList.add('correct');
+            quizStatus.textContent = '🎉 Correct! Great job!';
+          } else {
+            btn.classList.add('incorrect');
+            const correctBtn = document.querySelector(`[data-option="${currentCorrectAnswer}"]`);
+            if (correctBtn) correctBtn.classList.add('correct');
+            quizStatus.textContent = `❌ Incorrect (Correct: ${currentCorrectAnswer})`;
+          }
+        }
+      });
+    });
+
+    // --- Load Question (Initial or Next) ---
+    async function loadQuizQuestion(isNext = false) {
+      if (!isNext) {
+        const topic = topicInput.value.trim();
+        if (!topic) {
+          alert('Please enter a topic first!');
+          return;
+        }
+        currentTopic = topic;
+        questionNumber = 1;
+        askedQuestions = [];
+      } else {
+        if (!currentTopic) {
+          alert('Please enter a topic and generate a question first!');
+          return;
+        }
+        questionNumber++;
+      }
+
+      const originalGenerateText = generateBtn.innerHTML;
+      const originalNextText = nextBtn.innerHTML;
+
+      if (isNext) {
+        nextBtn.innerHTML = 'Brewing... ⏳';
+        nextBtn.disabled = true;
+      } else {
+        generateBtn.textContent = 'Thinking...';
+        generateBtn.disabled = true;
+      }
+
+      // Reset states
+      currentCorrectAnswer = "";
+      quizCounter.textContent = `Question ${questionNumber}`;
+      quizTag.textContent = `🌿 Question ${questionNumber} • ${currentTopic}`;
+      quizStatus.textContent = "Brewing question...";
+      questionDisplay.textContent = isNext ? `Brewing question #${questionNumber}...` : 'Generating a fresh trivia question...';
+
+      optionButtons.forEach(b => {
+        b.classList.remove('selected', 'correct', 'incorrect');
+        b.disabled = true;
+      });
+
+      try {
+        // Fetch AI Question with topic and previously asked questions list
+        const rawQuestionText = await generateAIQuestion(currentTopic, askedQuestions);
+        const parsed = parseQuiz(rawQuestionText);
+
+        if (parsed.options.A && parsed.options.B && parsed.options.C && parsed.options.D) {
+          questionDisplay.textContent = parsed.question || "Here is your trivia question:";
+
+          if (parsed.question) {
+            askedQuestions.push(parsed.question);
+          }
+
+          // Populate the 4 multiple-choice buttons
+          document.querySelector('[data-option="A"] .option-text').textContent = parsed.options.A;
+          document.querySelector('[data-option="B"] .option-text').textContent = parsed.options.B;
+          document.querySelector('[data-option="C"] .option-text').textContent = parsed.options.C;
+          document.querySelector('[data-option="D"] .option-text').textContent = parsed.options.D;
+
+          currentCorrectAnswer = parsed.correct;
+          quizStatus.textContent = 'Pick an answer';
+          quizFooterBar.style.display = 'flex';
+        } else {
+          // Fallback if parsing fails
+          questionDisplay.textContent = rawQuestionText;
+          quizStatus.textContent = 'Multiple Choice';
+        }
+      } catch (error) {
+        console.error('Error generating question:', error);
+        questionDisplay.textContent = `Error: ${error.message}`;
+        quizStatus.textContent = 'Generation Failed';
+      } finally {
+        generateBtn.innerHTML = originalGenerateText;
+        generateBtn.disabled = false;
+        nextBtn.innerHTML = originalNextText;
+        nextBtn.disabled = false;
+        optionButtons.forEach(b => b.disabled = false);
+      }
+    }
+
+    // Attach click listeners
+    generateBtn.addEventListener('click', () => loadQuizQuestion(false));
+    nextBtn.addEventListener('click', () => loadQuizQuestion(true));
+
+    // Allow pressing "Enter" in the input box to trigger generation
+    topicInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        loadQuizQuestion(false);
+      }
+    });
+
+    // --- Your API Function ---
+    async function generateAIQuestion(topic, previousQuestions = []) {
+      const HUGGING_FACE_TOKEN = ""; 
+      const API_URL = "https://router.huggingface.co/v1/chat/completions";
+
+      let avoidText = "";
+      if (previousQuestions.length > 0) {
+        avoidText = ` Do NOT repeat or ask about any of these previously asked questions:\n- ${previousQuestions.join('\n- ')}`;
+      }
+
+      const prompt = `Write ONE multiple-choice trivia question about ${topic}.${avoidText}
+You MUST format your response exactly like this:
+Question: [Your question here]
+A) [Option 1]
+B) [Option 2]
+C) [Option 3]
+D) [Option 4]
+Correct: [Just the letter A, B, C, or D]`;
+
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${HUGGING_FACE_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ 
+          model: "meta-llama/Llama-3.1-8B-Instruct",
+          messages: [
+            {
+              role: "system",
+              content: "You are a trivia quiz generator. Output ONLY the question, options A through D, and the correct letter with no introductory text or chit-chat."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          max_tokens: 250,
+          temperature: 0.7
+        })
+      });
+
+      // Read the AI's response
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || data.error || `HTTP ${response.status}: Failed to fetch question`);
+      }
+
+      return data.choices[0].message.content.trim(); 
+    }
+  </script>
+</body>
+</html>
