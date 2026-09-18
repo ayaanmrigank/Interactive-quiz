@@ -1,2 +1,9 @@
-# Interactive-quiz
-An interactable quiz created with Antigravity and Hugging Face.
+When I started building BrainBrew AI, a trivia quiz website where an AI generates questions on any topic, I thought the hardest part would be designing the page. But as soon as I connected the app to the AI, I ran into bugs. To help rectify these problems I asked Antigravity(an AI assistant) to help me fix every issue and turn my static code into a dynamic one.
+
+The first major issue was getting access to the AI. When I clicked the "Generate Question" button, my code gave me a permission error saying my account couldn't call the AI. Antigravity explained that Hugging Face, the site consisting the AI model, required a special type of access token. I went into my account settings, created a new "Fine-grained" token, and checked the box to allow inference calls. Updating my HUGGING_FACE_TOKEN variable with this new key solved the authorization problem.
+
+However, the user experience was still unefficient. The text from the AI was pasting the entire question, all four choices, and the answer key straight into a single text box, leaving my four answer buttons completely blank. Antigravity helped me divide the questions and place the options in their designated spots. This function split the text apart, put the question in the main box, assigned choices A, B, C, and D onto the individual buttons, and checked if the user clicked the right answer.
+
+Additionaly, the game lacked the "Next Question" button. Players had to re-load the webapp or re-type the topic every time they wanted another question. We solved this by adding a new button that remembered the active topic, and generated new questions.
+
+Finally, the application was structured to its adequate spot, but there was still an annoying component that kept us from enjoying the webapp, and that was its consistency. Every time we wanted a new question, it would generate one question every time, however, I wanted it to generate multiple questions at a time, which allowed us to glide smoothly through the questions. Aside from that bug, the webapp works and is functional.
